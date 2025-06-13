@@ -13,6 +13,9 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registrationSuccessMessage, setRegistrationSuccessMessage] = useState(null);
   
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -86,10 +89,12 @@ const Register = () => {
       const result = await register(registerData);
       
       if (result.success) {
-        alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
-        navigate('/login', { 
-          state: { from: location.state?.from }
-        });
+        setRegistrationSuccessMessage('¡Registro exitoso! Serás redirigido al login en 5 segundos.');
+        setTimeout(() => {
+          navigate('/login', {
+            state: { from: location.state?.from }
+          });
+        }, 5000);
       } else {
         setErrors({ submit: result.error });
       }
@@ -108,6 +113,14 @@ const Register = () => {
           <p>Únete a TuMandadoMarket y comienza a comprar</p>
         </div>
 
+        {registrationSuccessMessage && (
+          <div className="success-message" style={{ textAlign: 'center', padding: '20px', backgroundColor: 'var(--success-background)', color: 'var(--success-text)', borderRadius: 'var(--border-radius)', marginBottom: 'var(--spacing-lg)' }}>
+            <p>{registrationSuccessMessage}</p>
+            <p><Link to="/login" state={{ from: location.state?.from }} className="link-primary">Ir a Iniciar Sesión ahora</Link></p>
+          </div>
+        )}
+
+        {!registrationSuccessMessage && (
         <form onSubmit={handleSubmit}>
           {errors.submit && (
             <div className="error-message">
@@ -128,14 +141,15 @@ const Register = () => {
                 placeholder="tu@email.com"
                 disabled={isLoading}
                 required
+                aria-describedby={errors.email ? "email-error" : undefined}
               />
               {errors.email && (
-                <span className="field-error">{errors.email}</span>
+                <span id="email-error" className="field-error">{errors.email}</span>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="full_name">Nombre Completo</label>
+              <label htmlFor="full_name">Nombre Completo (opcional)</label>
               <input
                 type="text"
                 id="full_name"
@@ -145,9 +159,10 @@ const Register = () => {
                 className={errors.full_name ? 'error' : ''}
                 placeholder="Tu nombre completo"
                 disabled={isLoading}
+                aria-describedby={errors.full_name ? "full_name-error" : undefined}
               />
               {errors.full_name && (
-                <span className="field-error">{errors.full_name}</span>
+                <span id="full_name-error" className="field-error">{errors.full_name}</span>
               )}
             </div>
           </div>
@@ -155,43 +170,72 @@ const Register = () => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="password">Contraseña *</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={errors.password ? 'error' : ''}
-                placeholder="Mínimo 6 caracteres"
-                disabled={isLoading}
-                required
-              />
+              <div className="password-input-wrapper" style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={errors.password ? 'error' : ''}
+                  placeholder="Mínimo 6 caracteres"
+                  disabled={isLoading}
+                  required
+                  aria-describedby={errors.password ? "password-error" : undefined}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="btn btn-ghost btn-sm password-toggle"
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? 'Ocultar' : 'Mostrar'}
+                </button>
+              </div>
               {errors.password && (
-                <span className="field-error">{errors.password}</span>
+                <span id="password-error" className="field-error">{errors.password}</span>
               )}
+              <div className="password-strength-meter-placeholder" style={{ height: '10px', backgroundColor: '#eee', marginTop: '5px', borderRadius: 'var(--border-radius)' }}>
+                {/* TODO: Implement actual password strength meter UI and logic */}
+              </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="confirmPassword">Confirmar Contraseña *</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={errors.confirmPassword ? 'error' : ''}
-                placeholder="Repite tu contraseña"
-                disabled={isLoading}
-                required
-              />
+              <div className="password-input-wrapper" style={{ position: 'relative' }}>
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={errors.confirmPassword ? 'error' : ''}
+                  placeholder="Repite tu contraseña"
+                  disabled={isLoading}
+                  required
+                  aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="btn btn-ghost btn-sm password-toggle"
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                  aria-pressed={showConfirmPassword}
+                  aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showConfirmPassword ? 'Ocultar' : 'Mostrar'}
+                </button>
+              </div>
               {errors.confirmPassword && (
-                <span className="field-error">{errors.confirmPassword}</span>
+                <span id="confirmPassword-error" className="field-error">{errors.confirmPassword}</span>
               )}
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="phone">Teléfono</label>
+            <label htmlFor="phone">Teléfono (opcional)</label>
             <input
               type="tel"
               id="phone"
@@ -201,26 +245,28 @@ const Register = () => {
               className={errors.phone ? 'error' : ''}
               placeholder="+54 11 1234-5678"
               disabled={isLoading}
+              aria-describedby={errors.phone ? "phone-error" : undefined}
             />
             {errors.phone && (
-              <span className="field-error">{errors.phone}</span>
+              <span id="phone-error" className="field-error">{errors.phone}</span>
             )}
           </div>
 
           <div className="form-group">
-            <label htmlFor="address">Dirección</label>
+            <label htmlFor="address">Dirección (opcional)</label>
             <textarea
               id="address"
               name="address"
               value={formData.address}
               onChange={handleChange}
               className={errors.address ? 'error' : ''}
-              placeholder="Tu dirección completa (opcional)"
+              placeholder="Tu dirección completa"
               disabled={isLoading}
               rows="3"
+              aria-describedby={errors.address ? "address-error" : undefined}
             />
             {errors.address && (
-              <span className="field-error">{errors.address}</span>
+              <span id="address-error" className="field-error">{errors.address}</span>
             )}
           </div>
 
@@ -240,7 +286,8 @@ const Register = () => {
             <Link
               to="/login"
               state={{ from: location.state?.from }}
-              style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}
+              className="link-primary"
+              style={{ textDecoration: 'none', fontWeight: '500' }}
             >
               Inicia sesión aquí
             </Link>
@@ -255,9 +302,10 @@ const Register = () => {
             color: 'var(--text-secondary)'
           }}>
             * Campos requeridos<br/>
-            Al registrarte, aceptas nuestros términos y condiciones.
+            Al registrarte, aceptas nuestros <Link to="/terms" className="link-inline">términos y condiciones</Link>.
           </div>
         </div>
+        )} {/* End conditional rendering of form */}
       </div>
     </div>
   );

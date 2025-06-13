@@ -9,6 +9,7 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -103,27 +104,54 @@ const Login = () => {
               className={errors.email ? 'error' : ''}
               placeholder="tu@email.com"
               disabled={isLoading}
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
             {errors.email && (
-              <span className="field-error">{errors.email}</span>
+              <span id="email-error" className="field-error">{errors.email}</span>
             )}
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? 'error' : ''}
-              placeholder="Tu contraseña"
-              disabled={isLoading}
-            />
+            <div className="password-input-wrapper" style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={errors.password ? 'error' : ''}
+                placeholder="Tu contraseña"
+                disabled={isLoading}
+                aria-describedby={errors.password ? "password-error" : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="btn btn-ghost btn-sm password-toggle"
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem'
+                }}
+                aria-pressed={showPassword}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </div>
             {errors.password && (
-              <span className="field-error">{errors.password}</span>
+              <span id="password-error" className="field-error">{errors.password}</span>
             )}
+          </div>
+
+          <div className="form-group" style={{ textAlign: 'right', marginBottom: 'var(--spacing-md)' }}>
+            <Link to="/forgot-password" className="link-secondary">
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
 
           <button
@@ -142,19 +170,21 @@ const Login = () => {
             <Link
               to="/register"
               state={{ from: location.state?.from }}
-              style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}
+              className="link-primary" // Added class
+              style={{ textDecoration: 'none', fontWeight: '500' }} // Kept essential style if link-primary doesn't cover all
             >
               Regístrate aquí
             </Link>
           </p>
 
-          <div style={{
+          {/* TODO: Consider removing test accounts box or hiding via env variable for production */}
+          <div className="test-accounts-box" style={{
             padding: 'var(--spacing-lg)',
             backgroundColor: 'var(--background-secondary)',
             borderRadius: 'var(--border-radius)',
             border: '1px solid var(--border-color)'
           }}>
-            <h4 style={{
+            <h4 className="test-accounts-title" style={{
               margin: '0 0 var(--spacing-md) 0',
               color: 'var(--text-primary)',
               fontSize: '0.9rem',
@@ -162,14 +192,14 @@ const Login = () => {
             }}>
               Cuentas de Prueba:
             </h4>
-            <div style={{
+            <div className="test-account-item" style={{
               marginBottom: 'var(--spacing-sm)',
               fontSize: '0.85rem',
               color: 'var(--text-secondary)'
             }}>
               <strong>Admin:</strong> admin@test.com / 123456
             </div>
-            <div style={{
+            <div className="test-account-item" style={{
               fontSize: '0.85rem',
               color: 'var(--text-secondary)'
             }}>

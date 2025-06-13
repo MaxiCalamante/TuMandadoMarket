@@ -14,6 +14,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [cartMessage, setCartMessage] = useState(null);
 
   useEffect(() => {
     fetchProduct();
@@ -42,12 +43,12 @@ const ProductDetail = () => {
     const result = await addToCart(product.id, quantity);
     
     if (result.success) {
-      // Mostrar mensaje de éxito
+      setCartMessage({ type: 'success', text: '¡Producto agregado al carrito!' });
       setQuantity(1);
     } else {
-      alert(result.error);
+      setCartMessage({ type: 'error', text: result.error || 'Error al agregar el producto.' });
     }
-    
+    // TODO: Clear cartMessage after a few seconds
     setIsAddingToCart(false);
   };
 
@@ -60,10 +61,40 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="section">
-        <div className="loading">
-          Cargando producto...
+      <div className="product-detail-page">
+        <div className="section">
+          {/* Skeleton for Breadcrumb */}
+          <nav className="breadcrumb skeleton-breadcrumb" style={{ marginBottom: '20px' }}>
+            <span className="skeleton skeleton-text" style={{ width: '50px', height: '16px', marginRight: '5px' }}></span>
+            <span className="skeleton skeleton-text" style={{ width: '10px', height: '16px', marginRight: '5px' }}></span>
+            <span className="skeleton skeleton-text" style={{ width: '70px', height: '16px', marginRight: '5px' }}></span>
+            <span className="skeleton skeleton-text" style={{ width: '10px', height: '16px', marginRight: '5px' }}></span>
+            <span className="skeleton skeleton-text" style={{ width: '100px', height: '16px' }}></span>
+          </nav>
+
+          <div className="product-detail">
+            <div className="product-detail-image skeleton">
+              <div className="skeleton skeleton-image-main" style={{ width: '100%', height: '300px', backgroundColor: '#eee' }}></div>
+              {/* Placeholder for thumbnail gallery if we add it later */}
+            </div>
+            <div className="product-detail-info skeleton-info">
+              <div className="skeleton skeleton-title" style={{ width: '70%', height: '36px', marginBottom: '10px' }}></div>
+              <div className="skeleton skeleton-category" style={{ width: '30%', height: '18px', marginBottom: '20px' }}></div>
+              <div className="skeleton skeleton-price" style={{ width: '40%', height: '30px', marginBottom: '20px' }}></div>
+              <div className="skeleton-description">
+                <div className="skeleton skeleton-text" style={{ width: '100%', height: '16px', marginBottom: '8px' }}></div>
+                <div className="skeleton skeleton-text" style={{ width: '100%', height: '16px', marginBottom: '8px' }}></div>
+                <div className="skeleton skeleton-text" style={{ width: '80%', height: '16px', marginBottom: '20px' }}></div>
+              </div>
+              <div className="skeleton skeleton-stock" style={{ width: '50%', height: '20px', marginBottom: '20px' }}></div>
+              <div className="product-detail-actions skeleton-actions" style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="skeleton skeleton-input" style={{ width: '80px', height: '40px', marginRight: '10px' }}></div>
+                <div className="skeleton skeleton-button" style={{ flexGrow: 1, height: '40px' }}></div>
+              </div>
+            </div>
+          </div>
         </div>
+        {/* TODO: Add/enhance actual CSS for skeleton animations and appearance */}
       </div>
     );
   }
@@ -104,7 +135,7 @@ const ProductDetail = () => {
                 src={product.image_url} 
                 alt={product.name}
                 onError={(e) => {
-                  e.target.src = '/placeholder-image.jpg';
+                  e.target.src = '/placeholder-image.jpg'; // Assuming this path is correct
                 }}
               />
             ) : (
@@ -114,6 +145,7 @@ const ProductDetail = () => {
                 </svg>
               </div>
             )}
+            <div className="product-thumbnails-placeholder">{/* TODO: Implement image thumbnail gallery here if product has multiple images */}</div>
           </div>
 
           {/* Información del producto */}
@@ -153,32 +185,57 @@ const ProductDetail = () => {
               {product.stock > 0 ? (
                 <>
                   <div className="quantity-selector">
-                    <label htmlFor="quantity">Cantidad:</label>
-                    <select
-                      id="quantity"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value))}
-                      max={product.stock}
-                    >
-                      {[...Array(Math.min(product.stock, 10))].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {i + 1}
-                        </option>
-                      ))}
-                    </select>
+                    <label htmlFor="quantity-input">Cantidad:</label>
+                    <div className="quantity-input-group">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                        disabled={quantity <= 1}
+                        className="btn btn-ghost btn-sm"
+                      >-</button>
+                      <input
+                        type="number"
+                        id="quantity-input"
+                        value={quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (isNaN(val)) {
+                            setQuantity(1);
+                          } else {
+                            setQuantity(Math.max(1, Math.min(val, product.stock, 10)));
+                          }
+                        }}
+                        onBlur={(e) => { // Ensure value is at least 1 if user leaves it empty
+                          if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                            setQuantity(1);
+                          }
+                        }}
+                        min="1"
+                        max={Math.min(product.stock, 10)} // Set max attribute for native browser validation
+                        className="quantity-input"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(prev => Math.min(prev + 1, product.stock, 10))}
+                        disabled={quantity >= Math.min(product.stock, 10)}
+                        className="btn btn-ghost btn-sm"
+                      >+</button>
+                    </div>
                   </div>
 
                   <button
                     onClick={handleAddToCart}
-                    disabled={isAddingToCart || !isAuthenticated()}
+                    disabled={isAddingToCart || !isAuthenticated() || quantity > product.stock}
                     className="btn btn-primary btn-large"
                   >
                     {isAddingToCart ? 'Agregando...' : 'Agregar al Carrito'}
                   </button>
 
+                  {cartMessage && <div className={`cart-message ${cartMessage.type}`}>{cartMessage.text}</div>}
+
                   {isProductInCart && (
                     <div className="in-cart-info">
-                      En carrito: {cartQuantity} unidades
+                      En carrito: {cartQuantity} unidades (agregando {quantity} más)
                     </div>
                   )}
                 </>
@@ -210,6 +267,30 @@ const ProductDetail = () => {
           </button>
         </div>
       </div>
+
+      <section className="related-products-section section">
+        <div className="section-header">
+          <h2>Productos Relacionados</h2>
+        </div>
+        <div className="products-grid">
+          {/* TODO: Fetch and display related products here. For now, placeholder cards: */}
+          <div className="placeholder-product-card">Producto Relacionado 1</div>
+          <div className="placeholder-product-card">Producto Relacionado 2</div>
+          <div className="placeholder-product-card">Producto Relacionado 3</div>
+        </div>
+      </section>
+
+      <section className="customer-reviews-section section">
+        <div className="section-header">
+          <h2>Opiniones de Clientes</h2>
+        </div>
+        <div className="reviews-list">
+          {/* TODO: Fetch and display customer reviews here. For now, placeholder review: */}
+          <div className="placeholder-review">
+            <p><strong>Cliente Satisfecho:</strong> "¡Excelente producto!"</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

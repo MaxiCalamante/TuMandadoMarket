@@ -98,9 +98,52 @@ const Products = () => {
 
   if (loading && products.length === 0) {
     return (
-      <div className="section">
-        <div className="loading">
-          Cargando productos...
+      <div className="products-page"> {/* Main wrapper */}
+        <div className="section"> {/* Header section */}
+          <div className="section-header">
+            <h1>Productos</h1>
+            <p>Descubre nuestra amplia selección de productos</p>
+          </div>
+        </div>
+        {/* Skeleton for body */}
+        {/* TODO: Add/enhance actual CSS for skeleton animations and appearance */}
+        <div className="products-body-container section"> {/* Added section class for consistent spacing */}
+          <aside className="filters-sidebar skeleton-sidebar">
+            <h3>Filtrar Productos</h3>
+            <div className="filter-group">
+              <div className="skeleton skeleton-label" style={{ height: '16px', marginBottom: '8px', width: '50%' }}></div>
+              <div className="skeleton skeleton-input" style={{ height: '38px' }}></div>
+            </div>
+            <div className="filter-group">
+              <div className="skeleton skeleton-label" style={{ height: '16px', marginBottom: '8px', width: '70%' }}></div>
+              <div className="skeleton skeleton-select" style={{ height: '38px' }}></div>
+            </div>
+            <div className="filter-group">
+              <div className="skeleton skeleton-label" style={{ height: '16px', marginBottom: '8px', width: '60%' }}></div>
+              <div className="skeleton skeleton-select" style={{ height: '38px' }}></div>
+            </div>
+            <div className="skeleton skeleton-button" style={{ height: '38px', marginTop: '16px' }}></div>
+          </aside>
+          <main className="products-main-content skeleton-main">
+            <div className="products-results">
+              <p className="results-count skeleton skeleton-text" style={{ height: '20px', width: '40%' }}></p>
+            </div>
+            <div className="products-grid">
+              {Array.from({ length: pagination.limit || 12 }).map((_, index) => (
+                <div key={index} className="product-card-skeleton">
+                  <div className="skeleton skeleton-image" style={{ height: '150px', marginBottom: '10px' }}></div>
+                  <div className="skeleton skeleton-text skeleton-title" style={{ height: '20px', marginBottom: '5px', width: '80%' }}></div>
+                  <div className="skeleton skeleton-text skeleton-price" style={{ height: '18px', marginBottom: '10px', width: '50%' }}></div>
+                  <div className="skeleton skeleton-button" style={{ height: '36px', width: '100px' }}></div>
+                </div>
+              ))}
+            </div>
+            <div className="pagination skeleton-pagination" style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+              <div className="skeleton skeleton-button-small" style={{ height: '32px', width: '80px', margin: '0 5px' }}></div>
+              <div className="skeleton skeleton-text-small" style={{ height: '32px', width: '100px', margin: '0 5px', lineHeight: '32px', textAlign: 'center' }}></div>
+              <div className="skeleton skeleton-button-small" style={{ height: '32px', width: '80px', margin: '0 5px' }}></div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -108,19 +151,22 @@ const Products = () => {
 
   return (
     <div className="products-page">
-      {/* Header */}
       <div className="section">
         <div className="section-header">
           <h1>Productos</h1>
           <p>Descubre nuestra amplia selección de productos</p>
         </div>
 
-        {/* Filtros */}
-        <div className="products-filters">
-          <div className="filters-row">
-            {/* Búsqueda */}
-            <div className="search-box">
+        {/* New layout for filters and product listing START */}
+        {/* TODO: Implement responsive sidebar toggle & actual CSS styling for sidebar/main content layout */}
+        <div className="products-body-container">
+          <aside className="filters-sidebar">
+            <h3>Filtrar Productos</h3>
+
+            <div className="filter-group">
+              <label htmlFor="search-input">Buscar:</label>
               <input
+                id="search-input"
                 type="text"
                 placeholder="Buscar productos..."
                 value={filters.search}
@@ -129,124 +175,132 @@ const Products = () => {
               />
             </div>
 
-            {/* Categoría */}
-            <select
-              value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="filter-select"
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div className="filter-group">
+              <label htmlFor="category-select">Categoría:</label>
+              <select
+                id="category-select"
+                value={filters.category}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Todas las categorías</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Ordenamiento */}
-            <select
-              value={`${filters.sortBy}-${filters.sortOrder}`}
-              onChange={(e) => {
-                const [sortBy, sortOrder] = e.target.value.split('-');
-                setFilters(prev => ({ ...prev, sortBy, sortOrder }));
-              }}
-              className="filter-select"
-            >
-              <option value="name-asc">Nombre A-Z</option>
-              <option value="name-desc">Nombre Z-A</option>
-              <option value="price-asc">Precio menor a mayor</option>
-              <option value="price-desc">Precio mayor a menor</option>
-              <option value="created_at-desc">Más recientes</option>
-            </select>
+            <div className="filter-group">
+              <label htmlFor="sort-select">Ordenar por:</label>
+              <select
+                id="sort-select"
+                value={`${filters.sortBy}-${filters.sortOrder}`}
+                onChange={(e) => {
+                  const [sortBy, sortOrder] = e.target.value.split('-');
+                  setFilters(prev => ({ ...prev, sortBy, sortOrder }));
+                }}
+                className="filter-select"
+              >
+                <option value="name-asc">Nombre A-Z</option>
+                <option value="name-desc">Nombre Z-A</option>
+                <option value="price-asc">Precio menor a mayor</option>
+                <option value="price-desc">Precio mayor a menor</option>
+                <option value="created_at-desc">Más recientes</option>
+              </select>
+            </div>
 
-            {/* Limpiar filtros */}
-            <button onClick={clearFilters} className="btn btn-ghost btn-sm">
+            <button onClick={clearFilters} className="btn btn-ghost btn-sm btn-block">
               Limpiar filtros
             </button>
-          </div>
-        </div>
+          </aside>
 
-        {/* Resultados */}
-        <div className="products-results">
-          <p className="results-count">
-            {pagination.total > 0 
-              ? `Mostrando ${products.length} de ${pagination.total} productos`
-              : 'No se encontraron productos'
-            }
-          </p>
-        </div>
-
-        {/* Grid de productos */}
-        {products.length > 0 ? (
-          <div className="products-grid">
-            {products.map(product => (
-              <ProductCard 
-                key={product.id} 
-                product={product}
-                showAdminActions={false}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="no-products">
-            <div className="no-products-content">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 7H5C3.9 7 3 7.9 3 9V18C3 19.1 3.9 20 5 20H19C20.1 20 21 19.1 21 18V9C21 7.9 20.1 7 19 7ZM19 18H5V9H19V18ZM13.5 12C13.5 12.8 12.8 13.5 12 13.5S10.5 12.8 10.5 12 11.2 10.5 12 10.5 13.5 11.2 13.5 12Z" fill="currentColor"/>
-              </svg>
-              <h3>No se encontraron productos</h3>
-              <p>Intenta ajustar los filtros de búsqueda</p>
-              <button onClick={clearFilters} className="btn btn-primary">
-                Ver todos los productos
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Paginación */}
-        {pagination.totalPages > 1 && (
-          <div className="pagination">
-            <button
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page === 1}
-              className="btn btn-ghost btn-sm"
-            >
-              Anterior
-            </button>
-            
-            <div className="pagination-numbers">
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                .filter(page => 
-                  page === 1 || 
-                  page === pagination.totalPages || 
-                  Math.abs(page - pagination.page) <= 2
-                )
-                .map((page, index, array) => (
-                  <React.Fragment key={page}>
-                    {index > 0 && array[index - 1] !== page - 1 && (
-                      <span className="pagination-ellipsis">...</span>
-                    )}
-                    <button
-                      onClick={() => handlePageChange(page)}
-                      className={`btn btn-sm ${
-                        page === pagination.page ? 'btn-primary' : 'btn-ghost'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  </React.Fragment>
-                ))
-              }
+          <main className="products-main-content">
+            <div className="products-results">
+              <p className="results-count">
+                {pagination.total > 0
+                  ? `Mostrando ${products.length} de ${pagination.total} productos`
+                  : 'No se encontraron productos'
+                }
+              </p>
             </div>
 
-            <button
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page === pagination.totalPages}
-              className="btn btn-ghost btn-sm"
-            >
-              Siguiente
-            </button>
-          </div>
-        )}
+            {products.length > 0 ? (
+              <div className="products-grid">
+                {products.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    showAdminActions={false}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="no-products">
+                <div className="no-products-content">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"></path>
+                    <path d="M22 22L18 18"></path>
+                    <path d="M11.5 7V12"></path>
+                    <path d="M11.5 15H11.51"></path>
+                  </svg>
+                  <h3>No se encontraron productos</h3>
+                  <p>Intenta ajustar los filtros de búsqueda</p>
+                  <button onClick={clearFilters} className="btn btn-primary">
+                    Ver todos los productos
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {pagination.totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Anterior
+                </button>
+
+                <div className="pagination-numbers">
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                    .filter(page =>
+                      page === 1 ||
+                      page === pagination.totalPages ||
+                      Math.abs(page - pagination.page) <= 2
+                    )
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className="pagination-ellipsis">...</span>
+                        )}
+                        <button
+                          onClick={() => handlePageChange(page)}
+                          className={`btn btn-sm ${
+                            page === pagination.page ? 'btn-primary' : 'btn-ghost'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    ))
+                  }
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
+          </main>
+        </div>
+        {/* New layout for filters and product listing END */}
       </div>
     </div>
   );

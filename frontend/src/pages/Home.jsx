@@ -44,12 +44,12 @@ const Home = () => {
   return (
     <div className="home-container">
       {/* Hero Section */}
+      {/* TODO: Add/enhance styles in CSS for this section */}
       <section className="hero">
         <div className="hero-content">
-          <h1>Bienvenido a TuMandadoMarket</h1>
+          <h1>TuMandadoMarket: Frescura y Sabor Directo a Tu Hogar</h1>
           <p>
-            Tu marketplace de confianza para comidas, bebidas y mucho más.
-            Encuentra todo lo que necesitas con la mejor calidad y precios.
+            Descubre una amplia variedad de alimentos frescos, bebidas refrescantes y productos esenciales para tu día a día. Calidad garantizada y entrega rápida.
           </p>
           <div className="hero-actions">
             <Link to="/productos" className="btn btn-primary btn-large">
@@ -61,11 +61,12 @@ const Home = () => {
           </div>
         </div>
         <div className="hero-image">
-          <div className="hero-visual">TM</div>
+          {/* TODO: Replace with a high-quality hero image or carousel */}
         </div>
       </section>
 
       {/* Categories Section */}
+      {/* TODO: Add/enhance styles in CSS for this section */}
       <section className="categories-section section">
         <div className="section-header">
           <h2>Categorías</h2>
@@ -77,7 +78,7 @@ const Home = () => {
             <Link
               key={category.id}
               to={`/productos?category=${category.id}`}
-              className="category-card"
+              className="category-card category-card-link"
             >
               <div className="category-icon">
                 {getCategoryIcon(category.name)}
@@ -162,6 +163,32 @@ const Home = () => {
         </div>
       </section>
 
+      {/* New Testimonials Section */}
+      {/* TODO: Add/enhance styles in CSS for this section */}
+      <section className="testimonials-section section">
+        <div className="section-header">
+          <h2>Lo que dicen nuestros clientes</h2>
+          <p>Descubre por qué nuestros clientes nos prefieren.</p>
+        </div>
+        <div className="testimonials-grid">
+          {/* Testimonial Card 1 */}
+          <div className="testimonial-card">
+            <p className="testimonial-text">"¡Excelente servicio y productos de primera! Siempre encuentro lo que necesito y la entrega es rapidísima. ¡Totalmente recomendado!"</p>
+            <p className="testimonial-author">- Ana Pérez</p>
+          </div>
+          {/* Testimonial Card 2 */}
+          <div className="testimonial-card">
+            <p className="testimonial-text">"Me encanta la variedad de comidas y bebidas. Los precios son justos y la calidad es insuperable. ¡Mi mercado online favorito!"</p>
+            <p className="testimonial-author">- Carlos Gómez</p>
+          </div>
+          {/* Testimonial Card 3 */}
+          <div className="testimonial-card">
+            <p className="testimonial-text">"Hacer mis compras en TuMandadoMarket me ahorra mucho tiempo. La plataforma es fácil de usar y el equipo de soporte es muy amable."</p>
+            <p className="testimonial-author">- Laura Fernández</p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="cta-section">
         <div className="cta-content">
@@ -209,7 +236,7 @@ const getCategoryIcon = (categoryName) => {
   };
   return icons[categoryName] || (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 7H5C3.9 7 3 7.9 3 9V18C3 19.1 3.9 20 5 20H19C20.1 20 21 19.1 21 18V9C21 7.9 20.1 7 19 7ZM19 18H5V9H19V18ZM13.5 12C13.5 12.8 12.8 13.5 12 13.5S10.5 12.8 10.5 12 11.2 10.5 12 10.5 13.5 11.2 13.5 12Z" fill="currentColor"/>
+      <path d="M7 2H17C18.1 2 19 2.9 19 4V20C19 21.1 18.1 22 17 22H7C5.9 22 5 21.1 5 20V4C5 2.9 5.9 2 7 2ZM7 4V20H17V4H7ZM9 12H15V14H9V12ZM9 16H13V18H9V16ZM9 8H15V10H9V8Z" fill="currentColor"/>
     </svg>
   );
 };

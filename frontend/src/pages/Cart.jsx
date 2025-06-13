@@ -8,6 +8,9 @@ const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [confirmRemoveInfo, setConfirmRemoveInfo] = useState(null); // { itemId, itemName }
+  const [showConfirmClearCart, setShowConfirmClearCart] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-AR', {
@@ -25,26 +28,32 @@ const Cart = () => {
   };
 
   const handleRemoveItem = async (productId) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
-      await removeFromCart(productId);
+    const item = cartItems.find(i => i.product_id === productId);
+    if (item) {
+      setConfirmRemoveInfo({ itemId: productId, itemName: item.products.name });
     }
+    // Original: if (window.confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+    //   await removeFromCart(productId);
+    // }
   };
 
   const handleClearCart = async () => {
-    if (window.confirm('¿Estás seguro de que quieres vaciar todo el carrito?')) {
-      await clearCart();
-    }
+    setShowConfirmClearCart(true);
+    // Original: if (window.confirm('¿Estás seguro de que quieres vaciar todo el carrito?')) {
+    //   await clearCart();
+    // }
   };
 
   const handleCheckout = async () => {
     setIsProcessing(true);
+    setCheckoutError(null); // Clear previous errors
     try {
       // Aquí implementaremos la lógica de checkout
       // Por ahora, redirigimos a una página de confirmación
       navigate('/mis-pedidos');
     } catch (error) {
       console.error('Error en checkout:', error);
-      alert('Error al procesar el pedido. Intenta nuevamente.');
+      setCheckoutError('Error al procesar el pedido. Intenta nuevamente.');
     } finally {
       setIsProcessing(false);
     }
@@ -145,17 +154,46 @@ const Cart = () => {
                         onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
                         className="quantity-btn"
                         disabled={item.quantity <= 1}
-                      >
-                        -
-                      </button>
-                      <span className="quantity-display">{item.quantity}</span>
+                      >-</button>
+                      <input
+                        type="number"
+                        id={`quantity-${item.id}`}
+                        className="quantity-input"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const newQuantity = parseInt(e.target.value);
+                          if (!isNaN(newQuantity)) {
+                            if (newQuantity <= 0) {
+                              // Let blur handle removal or setting to 1 if typed 0
+                            } else if (newQuantity > item.products.stock) {
+                              handleQuantityChange(item.product_id, item.products.stock);
+                            } else {
+                              handleQuantityChange(item.product_id, newQuantity);
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const newQuantity = parseInt(e.target.value);
+                          if (isNaN(newQuantity) || newQuantity < 1) {
+                            // if newQuantity is 0, handleQuantityChange will remove it.
+                            // if it's NaN or less than 0 (but not 0), set to 1.
+                            handleQuantityChange(item.product_id, newQuantity === 0 ? 0 : 1);
+                          } else if (newQuantity > item.products.stock) {
+                             handleQuantityChange(item.product_id, item.products.stock);
+                          } else {
+                             handleQuantityChange(item.product_id, newQuantity);
+                          }
+                        }}
+                        min="1" // Note: handleQuantityChange(0) will remove item
+                        max={item.products.stock}
+                        style={{ width: '50px', textAlign: 'center', margin: '0 5px' }}
+                        disabled={item.quantity >= item.products.stock && item.products.stock > 0} // Disable if at stock, but not if stock is 0
+                      />
                       <button
                         onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
                         className="quantity-btn"
                         disabled={item.quantity >= item.products.stock}
-                      >
-                        +
-                      </button>
+                      >+</button>
                     </div>
                   </div>
 
@@ -218,6 +256,15 @@ const Cart = () => {
                 <span className="total-amount">{formatPrice(total)}</span>
               </div>
 
+              <div className="promo-code-section" style={{ marginTop: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+                <label htmlFor="promo-code">¿Tienes un código de descuento?</label>
+                <div className="input-group" style={{ display: 'flex', marginTop: 'var(--spacing-sm)' }}>
+                  <input type="text" id="promo-code" placeholder="Ingresa tu código" className="form-input" style={{ flexGrow: 1, marginRight: 'var(--spacing-sm)' }} />
+                  <button className="btn btn-outline btn-sm">Aplicar</button>
+                </div>
+                {/* TODO: Implement promo code logic and display messages */}
+              </div>
+
               <div className="checkout-actions">
                 <button
                   onClick={handleCheckout}
@@ -227,6 +274,12 @@ const Cart = () => {
                   {isProcessing ? 'Procesando...' : 'Finalizar Compra'}
                 </button>
                 
+                {checkoutError && (
+                  <div className="error-message" style={{ marginTop: 'var(--spacing-md)', color: 'var(--error-color)' }}>
+                    {checkoutError}
+                  </div>
+                )}
+
                 <Link to="/productos" className="btn btn-outline btn-large">
                   Seguir Comprando
                 </Link>
@@ -242,6 +295,29 @@ const Cart = () => {
           </div>
         </div>
       </div>
+
+      {confirmRemoveInfo && (
+        <div className="modal-placeholder" style={{ position: 'fixed', top: '20%', left: '50%', transform: 'translate(-50%, -20%)', backgroundColor: 'white', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', zIndex: 1000, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+          <h4>Confirmar Eliminación</h4>
+          <p>¿Seguro que quieres eliminar "{confirmRemoveInfo.itemName}" del carrito?</p>
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button onClick={async () => { await removeFromCart(confirmRemoveInfo.itemId); setConfirmRemoveInfo(null); }} className="btn btn-danger" style={{ marginRight: '10px' }}>Sí, eliminar</button>
+            <button onClick={() => setConfirmRemoveInfo(null)} className="btn btn-ghost">Cancelar</button>
+          </div>
+          {/* TODO: Replace with actual Modal component */}
+        </div>
+      )}
+      {showConfirmClearCart && (
+        <div className="modal-placeholder" style={{ position: 'fixed', top: '20%', left: '50%', transform: 'translate(-50%, -20%)', backgroundColor: 'white', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', zIndex: 1000, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+          <h4>Confirmar Vaciar Carrito</h4>
+          <p>¿Seguro que quieres vaciar todo el carrito?</p>
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button onClick={async () => { await clearCart(); setShowConfirmClearCart(false); }} className="btn btn-danger" style={{ marginRight: '10px' }}>Sí, vaciar</button>
+            <button onClick={() => setShowConfirmClearCart(false)} className="btn btn-ghost">Cancelar</button>
+          </div>
+          {/* TODO: Replace with actual Modal component */}
+        </div>
+      )}
     </div>
   );
 };
